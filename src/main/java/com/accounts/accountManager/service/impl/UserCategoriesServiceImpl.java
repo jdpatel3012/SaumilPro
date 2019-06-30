@@ -30,6 +30,8 @@ public class UserCategoriesServiceImpl implements IUserCategoriesService {
 
 	@Override
 	public UserCategories saveUserCategory(@Valid UserCategories userCategories) {
+		if (userCategoriesDao.findUserCategoryByName(userCategories.getName()) != null)
+			return null;
 		UUID uuid = UUID.randomUUID();
 		userCategories.setID(uuid.toString());
 		return userCategoriesDao.save(userCategories);
@@ -38,17 +40,30 @@ public class UserCategoriesServiceImpl implements IUserCategoriesService {
 	@Override
 	public UserCategories updateUserCategory(@Valid UserCategories userCategories) {
 		UserCategories userCategories2 = userCategoriesDao.findUserCategoryById(userCategories.getID());
+		if (userCategories2 == null)
+			return null;
 		userCategories2.setName(userCategories.getName());
 		userCategories2.setCatIcon(userCategories.getCatIcon());
 		return userCategoriesDao.save(userCategories2);
 	}
 
 	@Override
-	public void deleteUserCategory(String id) {
-		UserTxns userTxns = userTxnsDao.findUserTxnByCategoryId(id);
-		if (userTxns == null) {
-			userCategoriesDao.deleteById(id);
+	public boolean deleteUserCategory(String id) {
+		if (isAvailable(id)) {
+			if (userTxnsDao.findUserTxnByCategoryId(id) == 0) {
+				userCategoriesDao.deleteById(id);
+				return true;
+			}
 		}
+		return false;
+	}
+
+	@Override
+	public boolean isAvailable(String id) {
+		if (userCategoriesDao.findUserCategoryById(id) != null) {
+			return true;
+		}
+		return false;
 	}
 
 }

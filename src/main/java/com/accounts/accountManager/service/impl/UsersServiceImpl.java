@@ -12,11 +12,11 @@ import com.accounts.accountManager.model.Users;
 import com.accounts.accountManager.service.IUsersService;
 
 @Service
-public class UsersServiceImpl implements IUsersService{
+public class UsersServiceImpl implements IUsersService {
 
 	@Autowired
 	UsersDao usersDao;
-	
+
 	@Override
 	public List<Users> fetchAllUsers() {
 		return (List<Users>) usersDao.findAll();
@@ -25,6 +25,14 @@ public class UsersServiceImpl implements IUsersService{
 	@Override
 	public Users saveUser(@Valid Users users) {
 		return usersDao.save(users);
+	}
+
+	@Override
+	public boolean isAvailable(String id) {
+		if (usersDao.findById(id) != null) {
+			return true;
+		}
+		return false;
 	}
 
 }

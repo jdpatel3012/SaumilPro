@@ -7,8 +7,11 @@ import org.springframework.stereotype.Repository;
 import com.accounts.accountManager.model.UserCategories;
 
 @Repository
-public interface UserCategoriesDao extends CrudRepository<UserCategories,String> {
+public interface UserCategoriesDao extends CrudRepository<UserCategories, String> {
 
 	@Query("select userCategories from UserCategories userCategories where userCategories.id=?1")
 	UserCategories findUserCategoryById(String id);
+
+	@Query("select userCategories from UserCategories userCategories where userCategories.name=?1")
+	UserCategories findUserCategoryByName(String name);
 }

@@ -11,4 +11,6 @@ public interface IUsersService {
 	List<Users> fetchAllUsers();
 
 	Users saveUser(@Valid Users users);
+	
+	boolean isAvailable(String id);
 }

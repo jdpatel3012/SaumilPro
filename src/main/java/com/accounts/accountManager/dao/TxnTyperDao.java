@@ -7,8 +7,11 @@ import org.springframework.stereotype.Repository;
 import com.accounts.accountManager.model.TxnTypes;
 
 @Repository
-public interface TxnTyperDao extends CrudRepository<TxnTypes,String> {
+public interface TxnTyperDao extends CrudRepository<TxnTypes, String> {
 
 	@Query("select txnTypes from TxnTypes txnTypes where txnTypes.id=?1")
 	TxnTypes findTxnTypeById(String id);
+
+	@Query("select txnTypes from TxnTypes txnTypes where txnTypes.name=?1")
+	TxnTypes findTxnTypeByName(String name);
 }

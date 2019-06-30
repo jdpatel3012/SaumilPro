@@ -11,8 +11,10 @@ public interface IUserTagsService {
 	List<UserTags> fetchAllUserTags();
 
 	UserTags saveUserTag(@Valid UserTags userTags);
-	
+
 	UserTags updateUserTag(@Valid UserTags userTags);
-	
-	void deleteUserTag(String id);
+
+	boolean deleteUserTag(String id);
+
+	boolean isAvailable(String id);
 }

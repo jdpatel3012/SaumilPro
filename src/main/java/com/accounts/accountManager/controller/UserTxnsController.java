@@ -1,10 +1,19 @@
 package com.accounts.accountManager.controller;
 
+import static com.accounts.accountManager.commons.constants.StringConstants.ENTRY_ALREADY_EXISTS;
+import static com.accounts.accountManager.commons.constants.StringConstants.ENTRY_ALREADY_EXISTS_LONG;
+import static com.accounts.accountManager.commons.constants.StringConstants.ENTRY_DOES_NOT_EXISTS;
+import static com.accounts.accountManager.commons.constants.StringConstants.ENTRY_DOES_NOT_EXISTS_LONG;
+import static com.accounts.accountManager.commons.constants.StringConstants.ERROR_WHILE_DELETING;
+import static com.accounts.accountManager.commons.constants.StringConstants.ERROR_WHILE_DELETING_LONG;
+
 import java.io.IOException;
 import java.util.List;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +28,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.accounts.accountManager.commons.CustomResponseException;
+import com.accounts.accountManager.commons.ResponseUtility;
 import com.accounts.accountManager.model.UserTxns;
 import com.accounts.accountManager.service.IUserTxnsService;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
@@ -28,44 +41,47 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RequestMapping("/api/userTxns")
 public class UserTxnsController {
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	ResponseUtility responseUtility = new ResponseUtility();
+
 	@Autowired
 	IUserTxnsService iUserTxnsService;
 
 	@GetMapping
-	public ResponseEntity<List<UserTxns>> fetchAllUserTxns() {
+	public ResponseEntity<Object> fetchAllUserTxns() throws InterruptedException {
 		List<UserTxns> userTxns = iUserTxnsService.fetchAllUserTxns();
-		return new ResponseEntity<List<UserTxns>>(userTxns, HttpStatus.OK);
+		return responseUtility.successResponse(userTxns);
 	}
 
 	@PostMapping
-	public ResponseEntity<UserTxns> saveUserTxn(@RequestParam(value = "data") String userTxnJsonData,
-			@RequestParam(value = "file", required = false) MultipartFile file) {
-		UserTxns userTxns = null;
-		try {
-			userTxns = new ObjectMapper().readValue(userTxnJsonData, UserTxns.class);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public ResponseEntity<Object> saveUserTxn(@RequestParam(value = "data") String userTxnJsonData,
+			@RequestParam(value = "file", required = false) MultipartFile file)
+			throws CustomResponseException, JsonParseException, JsonMappingException, IOException {
+		UserTxns userTxns = new ObjectMapper().readValue(userTxnJsonData, UserTxns.class);
 		UserTxns userTxns2 = iUserTxnsService.saveUserTxns(userTxns, file);
-		return new ResponseEntity<UserTxns>(userTxns2, HttpStatus.OK);
+		if (userTxns2 == null)
+			throw new CustomResponseException(HttpStatus.NOT_ACCEPTABLE, ENTRY_ALREADY_EXISTS,
+					"txn id " + ENTRY_ALREADY_EXISTS_LONG);
+		return responseUtility.successResponse(userTxns2);
 	}
 
 	@PutMapping
-	public ResponseEntity<UserTxns> UpdateUserTxn(@RequestParam(value = "data") String userTxnJsonData,
-			@RequestParam(value = "file", required = false) MultipartFile file) {
-		UserTxns userTxns = null;
-		try {
-			userTxns = new ObjectMapper().readValue(userTxnJsonData, UserTxns.class);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public ResponseEntity<Object> UpdateUserTxn(@RequestParam(value = "data") String userTxnJsonData,
+			@RequestParam(value = "file", required = false) MultipartFile file)
+			throws JsonParseException, JsonMappingException, IOException, CustomResponseException {
+		UserTxns userTxns = new ObjectMapper().readValue(userTxnJsonData, UserTxns.class);
 		UserTxns userTxns2 = iUserTxnsService.UpdateUserTxns(userTxns, file);
-		return new ResponseEntity<UserTxns>(userTxns2, HttpStatus.OK);
+		if (userTxns2 == null)
+			throw new CustomResponseException(HttpStatus.NOT_FOUND, ENTRY_DOES_NOT_EXISTS,
+					"txn id " + ENTRY_DOES_NOT_EXISTS_LONG);
+		return responseUtility.successResponse(userTxns2);
 	}
 
 	@DeleteMapping
-	public ResponseEntity<UserTxns> deleteUserTxn(String id) {
-		iUserTxnsService.deleteUserTxn(id);
-		return new ResponseEntity<UserTxns>(HttpStatus.OK);
+	public ResponseEntity<Object> deleteUserTxn(@Valid @RequestBody String id) throws CustomResponseException {
+		if (iUserTxnsService.deleteUserTxn(id))
+			return responseUtility.successResponse(null);
+		else
+			throw new CustomResponseException(HttpStatus.NOT_FOUND, ERROR_WHILE_DELETING, ERROR_WHILE_DELETING_LONG);
 	}
 }

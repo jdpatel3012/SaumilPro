@@ -30,6 +30,8 @@ public class TxnTypeServiceImpl implements ITxnTypesService {
 
 	@Override
 	public TxnTypes saveTxnType(@Valid TxnTypes txnTypes) {
+		if (txnTypeDao.findTxnTypeByName(txnTypes.getName()) != null)
+			return null;
 		UUID uuid = UUID.randomUUID();
 		txnTypes.setID(uuid.toString());
 		return txnTypeDao.save(txnTypes);
@@ -38,16 +40,29 @@ public class TxnTypeServiceImpl implements ITxnTypesService {
 	@Override
 	public TxnTypes updateTxnType(@Valid TxnTypes txnTypes) {
 		TxnTypes txnTypes2 = txnTypeDao.findTxnTypeById(txnTypes.getID());
+		if (txnTypes2 == null)
+			return null;
 		txnTypes2.setName(txnTypes.getName());
 		return txnTypeDao.save(txnTypes2);
 	}
 
 	@Override
-	public void deleteTxnType(String id) {
-		UserTxns userTxns = userTxnsDao.findUserTxnByTxnTypeId(id);
-		if (userTxns == null) {
-			txnTypeDao.deleteById(id);
+	public boolean deleteTxnType(String id) {
+		if (isAvailable(id)) {
+			if (userTxnsDao.findUserTxnByTxnTypeId(id) == 0) {
+				txnTypeDao.deleteById(id);
+				return true;
+			}
 		}
+		return false;
+	}
+
+	@Override
+	public boolean isAvailable(String id) {
+		if (txnTypeDao.findTxnTypeById(id) != null) {
+			return true;
+		}
+		return false;
 	}
 
 }

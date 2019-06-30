@@ -1,10 +1,6 @@
 package com.accounts.accountManager.service.impl;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,17 +10,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.accounts.accountManager.dao.UserAccountsDao;
 import com.accounts.accountManager.dao.UserTxnsDao;
+import com.accounts.accountManager.model.UserAccounts;
 import com.accounts.accountManager.model.UserTxns;
 import com.accounts.accountManager.service.IUserTxnsService;
-
-import javassist.bytecode.ByteArray;
 
 @Service
 public class UserTxnsServiceImpl implements IUserTxnsService {
 
 	@Autowired
 	UserTxnsDao userTxnsDao;
+
+	@Autowired
+	UserAccountsDao userAccountsDao;
 
 	@Override
 	public List<UserTxns> fetchAllUserTxns() {
@@ -47,12 +46,20 @@ public class UserTxnsServiceImpl implements IUserTxnsService {
 				e.printStackTrace();
 			}
 		}
+		if (userTxns.getAmtCr() > 0 || userTxns.getAmtDr() > 0) {
+			UserAccounts userAccounts = userAccountsDao.findUserAccountById(userTxns.getAccount_id());
+			userAccounts.setBalance(userAccounts.getBalance() + userTxns.getAmtCr());
+			userAccounts.setBalance(userAccounts.getBalance() - userTxns.getAmtDr());
+			userAccountsDao.save(userAccounts);
+		}
 		return userTxnsDao.save(userTxns);
 	}
 
 	@Override
 	public UserTxns UpdateUserTxns(@Valid UserTxns userTxns, MultipartFile file) {
 		UserTxns userTxns2 = userTxnsDao.findUserTxnById(userTxns.getID());
+		if (userTxns2 == null)
+			return null;
 		userTxns2.setAccount_id(userTxns.getAccount_id());
 		userTxns2.setAmtCr(userTxns.getAmtCr());
 		userTxns2.setAmtDr(userTxns.getAmtDr());
@@ -76,8 +83,20 @@ public class UserTxnsServiceImpl implements IUserTxnsService {
 	}
 
 	@Override
-	public void deleteUserTxn(String id) {
-		userTxnsDao.deleteById(id);
+	public boolean deleteUserTxn(String id) {
+		if (isAvailable(id)) {
+			userTxnsDao.deleteById(id);
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean isAvailable(String id) {
+		if (userTxnsDao.findUserTxnById(id) != null) {
+			return true;
+		}
+		return false;
 	}
 
 }

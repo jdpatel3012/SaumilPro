@@ -30,6 +30,8 @@ public class UserTagsServiceImpl implements IUserTagsService {
 
 	@Override
 	public UserTags saveUserTag(@Valid UserTags userTags) {
+		if (userTagsDao.findUserTagByName(userTags.getName()) != null)
+			return null;
 		UUID uuid = UUID.randomUUID();
 		userTags.setID(uuid.toString());
 		return userTagsDao.save(userTags);
@@ -38,16 +40,29 @@ public class UserTagsServiceImpl implements IUserTagsService {
 	@Override
 	public UserTags updateUserTag(@Valid UserTags userTags) {
 		UserTags userTags2 = userTagsDao.findUserTagById(userTags.getID());
+		if (userTags2 == null)
+			return null;
 		userTags2.setName(userTags.getName());
 		return userTagsDao.save(userTags2);
 	}
 
 	@Override
-	public void deleteUserTag(String id) {
-		UserTxns userTxns = userTxnsDao.findUserTxnByTagId(id);
-		if (userTxns == null) {
-			userTagsDao.deleteById(id);
+	public boolean deleteUserTag(String id) {
+		if (isAvailable(id)) {
+			if (userTxnsDao.findUserTxnByTagId(id) == 0) {
+				userTagsDao.deleteById(id);
+				return true;
+			}
 		}
+		return false;
+	}
+
+	@Override
+	public boolean isAvailable(String id) {
+		if (userTagsDao.findUserTagById(id) != null) {
+			return true;
+		}
+		return false;
 	}
 
 }

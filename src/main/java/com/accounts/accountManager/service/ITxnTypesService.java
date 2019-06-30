@@ -14,5 +14,7 @@ public interface ITxnTypesService {
 	
 	TxnTypes updateTxnType(@Valid TxnTypes txnTypes);
 	
-	void deleteTxnType(String id);
+	boolean deleteTxnType(String id);
+	
+	boolean isAvailable(String id);
 }

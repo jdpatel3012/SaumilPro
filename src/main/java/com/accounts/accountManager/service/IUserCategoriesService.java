@@ -14,5 +14,7 @@ public interface IUserCategoriesService {
 	
 	UserCategories updateUserCategory(@Valid UserCategories userCategories);
 	
-	void deleteUserCategory(String id);
+	boolean deleteUserCategory(String id);
+	
+	boolean isAvailable(String id);
 }

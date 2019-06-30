@@ -16,5 +16,7 @@ public interface IUserTxnsService {
 
 	UserTxns UpdateUserTxns(@Valid UserTxns userTxns, MultipartFile file);
 
-	void deleteUserTxn(String id);
+	boolean deleteUserTxn(String id);
+	
+	boolean isAvailable(String id);
 }

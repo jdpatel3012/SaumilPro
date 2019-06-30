@@ -14,5 +14,7 @@ public interface IUserAccountsService {
 	
 	UserAccounts updateUserAccount(@Valid UserAccounts userAccounts);
 	
-	void deleteTxnType(String id);
+	boolean deleteTxnType(String id);
+	
+	boolean isAvailable(String id);
 }

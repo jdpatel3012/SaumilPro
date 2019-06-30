@@ -26,8 +26,8 @@ public class UserAccounts implements Serializable {
 	@Column(name = "acc_no", nullable = false)
 	private String acc_no;
 
-	@Column(name = "balance", nullable = false)
-	private String balance;
+	@Column(name = "balance")
+	private float balance;
 
 	@Column(name = "active", nullable = false)
 	private int active;
@@ -64,11 +64,11 @@ public class UserAccounts implements Serializable {
 		this.name = name;
 	}
 
-	public String getBalance() {
+	public float getBalance() {
 		return balance;
 	}
 
-	public void setBalance(String balance) {
+	public void setBalance(float balance) {
 		this.balance = balance;
 	}
 }
